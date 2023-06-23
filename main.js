@@ -33,66 +33,96 @@ let quizArray = [
   },
 ];
 let list = document.querySelector("ul");
-let count = 0;
 let answerListByUser = [];
+let no = 0;
 
 const createCard = (obj) => {
   let card = document.createElement("li");
+  card.setAttribute('id',obj.questionId)
   let question = document.createElement("p");
+
   question.innerText = obj.questionText;
-  //option 1
-  let answer1 = document.createElement("button");
-  answer1.innerHTML = obj.answerArray[0].answer;
-  answer1.addEventListener("click", () => {
-    submitAnswer(obj.answerArray[0].answerId);
-  });
-  //option 2
-  let answer2 = document.createElement("button");
-  answer2.innerHTML = obj.answerArray[1].answer;
-  answer2.addEventListener("click", () => {
-    submitAnswer(obj.answerArray[1].answerId);
-  });
-  //option 3
-  let answer3 = document.createElement("button");
-  answer3.innerHTML = obj.answerArray[2].answer;
-  answer3.addEventListener("click", () => {
-    submitAnswer(obj.answerArray[2].answerId);
+  card.append(question);
+
+  obj.answerArray.forEach((item, index) => {
+    let answerButton = document.createElement("button");
+    answerButton.innerHTML = obj.answerArray[index].answer;
+    answerButton.addEventListener("click", () => {
+      submitAnswer(obj.answerArray[index].answerId, obj.questionId);
+    });
+    answerButton.setAttribute("id",obj.answerArray[index].answerId)
+    card.append(answerButton);
   });
 
-  card.append(question);
-  card.append(answer1);
-  card.append(answer2);
-  card.append(answer3);
+  //next button
+  let nextButton = document.createElement("button");
+  nextButton.addEventListener("click", () => {
+    showNextCard();
+  });
+  if (quizArray?.length > obj.questionId) {
+    nextButton.innerText = "Next";
+    nextButton.setAttribute("class", "next");
+  } else {
+    nextButton.innerText = "Submit";
+    nextButton.addEventListener("click", () => {
+        calculateScore()
+    });
+
+    nextButton.setAttribute("class", "submit");
+  }
+
+  card.append(nextButton);
   return card;
 };
+const showNextCard = () => {
+  no += 1;
+  renderCard();
+};
 const renderCard = () => {
-  quizArray.forEach((question) => {
-    let card = createCard(question);
-    list.append(card);
+  list.innerHTML = "";
+  quizArray.forEach((question, index) => {
+    if (index == no) {
+      let card = createCard(question);
+      list.append(card);
+    }
   });
 };
-const submitAnswer = (answerId) => {
-  answerListByUser[count] = answerId;
-  console.log(answerListByUser[count]);
-  count += 1;
-  if (count == quizArray.length) {
-    calculateScore();
+const submitAnswer = (answerId, questionId) => {
+  let selectedCard=document.getElementById(questionId)
+  let newArray = answerListByUser.find((obj) => obj.questionId == questionId);
+  if (newArray) {
+    let updatedArray = answerListByUser.map((item) => {
+      if (item.questionId == questionId) {
+        item.answerId = answerId;
+      }
+      return item;
+    });
+    answerListByUser = updatedArray;
+  } else {
+    answerListByUser.push({ questionId, answerId });
   }
+  selectedCard.childNodes.forEach((item,id)=>{
+    if(item.nodeName=="BUTTON"){
+    if(item.id==answerId ){
+      selectedCard.childNodes[item.id].classList.add('selected_button')
+      return
+    }
+    selectedCard.childNodes[item.id]?.classList.remove('selected_button')
+  }
+  })
+
 };
 const calculateScore = () => {
   let score = 0;
-  count = 0;
-  quizArray.forEach((answerid) => {
-    if (answerListByUser[count] == answerid.correctAnsId) {
+  quizArray.forEach((answerid, count) => {
+    if (answerListByUser[count]?.answerId == answerid.correctAnsId) {
       score += 1;
       document.write("Question no ", count + 1, " correct");
-      document.write('<br>')
+      document.write("<br>");
+    } else {
+      document.write("Question no ", count + 1, "incorrect");
+      document.write("<br>");
     }
-    else{
-        document.writeln("Question no ", count + 1, "incorrect");
-        document.write('<br>')
-    }
-    count += 1;
   });
   document.write("Your overall Score is ", score);
 };

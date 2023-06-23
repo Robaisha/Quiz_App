@@ -18,3 +18,25 @@ p{
 button{
     font-size: 20px;
 }
+.d-none{
+    display: none;
+}
+.d-block{
+    display: block;
+}
+.next{
+    background-color:rgb(30, 211, 30);
+    font-size: 15px;
+    margin: 10%;
+}
+.submit{
+    background-color:rgb(30, 102, 211);
+    font-size: 15px;
+    margin: 10%;
+}
+.selected_button{
+    background-color:darkcyan;
+}
+.other_button{
+    background-color:whitesmoke;
+}

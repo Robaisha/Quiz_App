@@ -35,10 +35,22 @@ let quizArray = [
 let list = document.querySelector("ul");
 let answerListByUser = [];
 let no = 0;
-
+let dateTime = document.querySelector("p");
+let timeLeft = 10;
+let tt = setInterval(function () {
+  if (timeLeft <= 0) {
+    clearInterval(tt);
+    dateTime.innerHTML = "Finished";
+  } else {
+    renderCard();
+    dateTime.innerHTML = timeLeft + " seconds remaining";
+  }
+  timeLeft -= 1;
+}, 1000);
 const createCard = (obj) => {
+  let noOfQuestions = document.createElement("p");
   let card = document.createElement("li");
-  card.setAttribute('id',obj.questionId)
+  card.setAttribute("id", obj.questionId);
   let question = document.createElement("p");
 
   question.innerText = obj.questionText;
@@ -50,28 +62,14 @@ const createCard = (obj) => {
     answerButton.addEventListener("click", () => {
       submitAnswer(obj.answerArray[index].answerId, obj.questionId);
     });
-    answerButton.setAttribute("id",obj.answerArray[index].answerId)
+    answerButton.setAttribute("id", obj.answerArray[index].answerId);
+    answerButton.addEventListener("click", () => {
+      showNextCard();
+    });
     card.append(answerButton);
   });
-
-  //next button
-  let nextButton = document.createElement("button");
-  nextButton.addEventListener("click", () => {
-    showNextCard();
-  });
-  if (quizArray?.length > obj.questionId) {
-    nextButton.innerText = "Next";
-    nextButton.setAttribute("class", "next");
-  } else {
-    nextButton.innerText = "Submit";
-    nextButton.addEventListener("click", () => {
-        calculateScore()
-    });
-
-    nextButton.setAttribute("class", "submit");
-  }
-
-  card.append(nextButton);
+  noOfQuestions.innerHTML = `Question ${no + 1} / ${quizArray.length}`;
+  card.append(noOfQuestions)
   return card;
 };
 const showNextCard = () => {
@@ -88,7 +86,7 @@ const renderCard = () => {
   });
 };
 const submitAnswer = (answerId, questionId) => {
-  let selectedCard=document.getElementById(questionId)
+  let selectedCard = document.getElementById(questionId);
   let newArray = answerListByUser.find((obj) => obj.questionId == questionId);
   if (newArray) {
     let updatedArray = answerListByUser.map((item) => {
@@ -101,16 +99,15 @@ const submitAnswer = (answerId, questionId) => {
   } else {
     answerListByUser.push({ questionId, answerId });
   }
-  selectedCard.childNodes.forEach((item,id)=>{
-    if(item.nodeName=="BUTTON"){
-    if(item.id==answerId ){
-      selectedCard.childNodes[item.id].classList.add('selected_button')
-      return
+  selectedCard.childNodes.forEach((item, id) => {
+    if (item.nodeName == "BUTTON") {
+      if (item.id == answerId) {
+        selectedCard.childNodes[item.id].classList.add("selected_button");
+        return;
+      }
+      selectedCard.childNodes[item.id]?.classList.remove("selected_button");
     }
-    selectedCard.childNodes[item.id]?.classList.remove('selected_button')
-  }
-  })
-
+  });
 };
 const calculateScore = () => {
   let score = 0;
@@ -126,4 +123,4 @@ const calculateScore = () => {
   });
   document.write("Your overall Score is ", score);
 };
-renderCard();
+let timeOut = setTimeout(calculateScore, 10000);

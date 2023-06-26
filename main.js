@@ -126,6 +126,7 @@ const calculateScore = () => {
   });
   playAgain.addEventListener("click", () => {
     overallScore.classList.toggle("d-none");
+    list.classList.toggle("d-block");
   });
   overallScore.append(playAgain);
 };

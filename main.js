@@ -35,74 +35,14 @@ let quizArray = [
 let list = document.querySelector("ul");
 let answerListByUser = [];
 let dateTime = document.querySelector("p");
-let no = 0;
+let overallScore = document.getElementById("results");
+let questionNo = 0;
+let timeOut;
+let interval;
 
-const setTimer = () => {};
-const createCard = (obj) => {
-  let noOfQuestions = document.createElement("p");
-  let card = document.createElement("li");
-  card.setAttribute("id", obj.questionId);
-  noOfQuestions.innerHTML = `Question ${no + 1} / ${quizArray.length}`;
-  card.append(noOfQuestions);
-  let question = document.createElement("p");
-
-  question.innerText = obj.questionText;
-  card.append(question);
-
-  obj.answerArray.forEach((item, index) => {
-    let answerButton = document.createElement("button");
-    answerButton.innerHTML = obj.answerArray[index].answer;
-    answerButton.addEventListener("click", () => {
-      submitAnswer(obj.answerArray[index].answerId, obj.questionId);
-    });
-    answerButton.setAttribute("id", obj.answerArray[index].answerId);
-    answerButton.addEventListener("click", () => {
-      showNextCard();
-    });
-    card.append(answerButton);
-  });
-  return card;
-};
-const showNextCard = () => {
-  no += 1;
-  renderCard();
-};
-const renderCard = () => {
-  list.innerHTML = "";
-  if (no < quizArray.length) {
-    question = quizArray[no];
-    let card = createCard(question);
-    list.append(card);
-  }
-};
-const submitAnswer = (answerId, questionId) => {
-  let selectedCard = document.getElementById(questionId);
-  let newArray = answerListByUser.find((obj) => obj.questionId == questionId);
-  if (newArray) {
-    let updatedArray = answerListByUser.map((item) => {
-      if (item.questionId == questionId) {
-        item.answerId = answerId;
-      }
-      return item;
-    });
-    answerListByUser = updatedArray;
-  } else {
-    answerListByUser.push({ questionId, answerId });
-  }
-  selectedCard.childNodes.forEach((item, id) => {
-    if (item.nodeName == "BUTTON") {
-      if (item.id == answerId) {
-        selectedCard.childNodes[item.id].classList.add("selected_button");
-        return;
-      }
-      selectedCard.childNodes[item.id]?.classList.remove("selected_button");
-    }
-  });
-};
 const calculateScore = () => {
-  list.classList.toggle("d-none");
+  list.innerHTML = "";
   let score = 0;
-  let overallScore = document.getElementById("results");
   quizArray.forEach((answerid, count) => {
     if (answerListByUser[count]?.answerId == answerid.correctAnsId) {
       score += 1;
@@ -115,40 +55,78 @@ const calculateScore = () => {
       overallScore.append(details);
     }
   });
+
   let overall = document.createElement("p");
   overall.innerHTML = `Your overall Score is ${score}`;
   overallScore.append(overall);
-  no = 0;
   let playAgain = document.createElement("button");
   playAgain.innerHTML = "Play Again";
-  playAgain.addEventListener("click", () => {
-    play();
-  });
-  playAgain.addEventListener("click", () => {
-    overallScore.classList.toggle("d-none");
-    list.classList.toggle("d-block");
-  });
+  playAgain.addEventListener("click", startQuiz);
   overallScore.append(playAgain);
 };
-const play = () => {
-  list.classList.toggle("d-block");
-  let timeOut = setTimeout(calculateScore, 10000);
+const showNextCard = () => {
+  if (questionNo == quizArray.length - 1) {
+    clearTimeout(timeOut);
+    clearInterval(interval);
+    calculateScore();
+  } else {
+    questionNo += 1;
+    renderCard();
+  }
+};
+const submitAnswer = (answerId, questionId) => {
+  answerListByUser.push({ questionId, answerId });
+};
+const createCard = (obj) => {
+  let card = document.createElement("li");
+  let noOfQuestions = document.createElement("p");
+  card.setAttribute("id", obj.questionId);
+  noOfQuestions.innerHTML = `Question ${questionNo + 1} / ${quizArray.length}`;
+  card.append(noOfQuestions);
+
+  let question = document.createElement("p");
+  question.innerText = obj.questionText;
+  card.append(question);
+
+  obj.answerArray.forEach((item, index) => {
+    let answerButton = document.createElement("button");
+    answerButton.innerHTML = obj.answerArray[index].answer;
+    answerButton.setAttribute("id", obj.answerArray[index].answerId);
+    answerButton.addEventListener("click", () => {
+      submitAnswer(obj.answerArray[index].answerId, obj.questionId);
+      showNextCard();
+    });
+    card.append(answerButton);
+  });
+  return card;
+};
+const renderCard = () => {
+  list.innerHTML = "";
+  if (questionNo < quizArray.length) {
+    question = quizArray[questionNo];
+    let card = createCard(question);
+    list.append(card);
+  }
+};
+const displayTime = () => {
   let timeLeft = 10;
-  let tt = setInterval(function () {
+  interval = setInterval(function () {
     if (timeLeft <= 0) {
-      clearInterval(tt);
+      clearInterval(interval);
       dateTime.innerHTML = "Finished";
-      no = 0;
-    } else if (quizArray.length < no + 1) {
-      clearInterval(tt);
-      clearTimeout(timeOut);
-      dateTime.innerHTML = "Finished";
-      calculateScore();
     } else {
-      renderCard();
       dateTime.innerHTML = timeLeft + " seconds remaining";
     }
     timeLeft -= 1;
   }, 1000);
 };
-play();
+const startQuiz = () => {
+  questionNo = 0;
+  overallScore.innerHTML = "";
+  list.innerHTML = "";
+  renderCard();
+  timeOut = setTimeout(calculateScore, 10000);
+  displayTime();
+};
+
+startQuiz();
